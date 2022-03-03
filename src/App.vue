@@ -1,19 +1,12 @@
 <template>
   <main id="app">
-    <NavBar />
-    <Table />
+    <router-view/>  <!-- router-view is a special element that is used to render the current route -->
   </main>
 </template>
 
 <script>
-import Table from './components/Table.vue'
-import NavBar from './components/NavBar.vue'
-
 export default {
   name: 'App',
-  components: {
-    Table, NavBar
-  }
 }
 </script>
 

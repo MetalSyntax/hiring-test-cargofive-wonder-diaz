@@ -4,7 +4,7 @@
       <img src="../assets/logo.png" alt="Logo" width="100">
     </b-navbar-brand>
     <b-navbar-nav>
-      <b-nav-item href="#">Home</b-nav-item>
+      <b-nav-item href="#"></b-nav-item>
     </b-navbar-nav>
   </b-navbar>
 </template>
