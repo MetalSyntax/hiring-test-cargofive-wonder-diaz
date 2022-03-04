@@ -1,5 +1,5 @@
 <template>
-  <b-navbar class="px-2" type="light" variant="light">
+  <b-navbar class="px-4" type="light" variant="light">
     <b-navbar-brand href="#">
       <img src="../assets/logo.png" alt="Logo" width="100">
     </b-navbar-brand>
