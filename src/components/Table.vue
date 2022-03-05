@@ -156,7 +156,12 @@ export default {
   },
   methods: {
     getPage(page) {
-      axios.get(`${this.baseURL}?page=${page}`)
+      const axiosInstance = axios.create({
+        headers: {
+          "Access-Control-Allow-Origin": "*"
+        }
+      });
+      axiosInstance.get(`${this.baseURL}?page=${page}`)
       .then(response => {
         this.items = response.data.data
         this.links = response.data.links
