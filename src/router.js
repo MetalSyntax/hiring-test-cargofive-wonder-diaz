@@ -8,14 +8,11 @@ export default new Router({
     routes: [
         {
             path: "/",
-            alias: "/home",
-            name: "home",
             component: () => import("./components/Main"),
         },
         {
             path: "/:id",
-            name: "more",
             component: () => import("./components/Main")
-        },
+        }
     ]
 });

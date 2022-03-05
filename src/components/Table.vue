@@ -1,50 +1,82 @@
 <template>
-  <section class="overflow-auto">
-    <!--- Sortable Dropdown Buttons -->
+  <section>
+    <!-- User Interface Filter -->
     <div class="px-4 py-2">
-      <b-dropdown variant="dark" text="Filter" class="m-md-2">
-        <b-dropdown-item @click="CountrySorted">Sort by Country</b-dropdown-item>
-        <b-dropdown-item @click="ContinentSorted">Sort by Continent</b-dropdown-item>
-        <b-dropdown-item @click="Display100ResultPerPage">Display 100 items</b-dropdown-item>
-        <b-dropdown-item @click="Display50ResultPerPage">Display 50 items</b-dropdown-item>
-        <b-dropdown-item @click="Display25ResultPerPage">Display 25 items</b-dropdown-item>
-      </b-dropdown>
+    <b-row>
+    <!--- Sort -->
+    <b-col lg="6" class="my-1">
+      <b-form-group 
+        label="Per page"
+        label-for="per-page-select"
+        class="mb-3"
+      >
+        <b-form-select
+          id="per-page-select"
+          v-model="perPage"
+          :options="pageOptions"
+          size="sm"
+        ></b-form-select>
+      </b-form-group>
+    </b-col>
+      <!-- Search -->
+    <b-col lg="6" class="my-1">
+      <b-form-group
+            label="Filter"
+            label-for="filter-input"
+            class="mb-3"
+          >
+            <b-input-group size="sm">
+              <b-form-input
+                id="filter-input"
+                v-model="filter"
+                type="search"
+                placeholder="Type to Search"
+              ></b-form-input>
+              <b-input-group-append>
+                <b-button :disabled="!filter" @click="filter = ''"
+                  >Clear</b-button
+                >
+              </b-input-group-append>
+            </b-input-group>
+          </b-form-group>
+    </b-col>
+    </b-row>
+    <b-row>
+    <b-col lg="6" class="my-1">
+      <!--- Pagination Sort -->
+      <b-pagination
+          class=""
+          v-model="currentPageSort"
+          :total-rows="totalRows"
+          :per-page="perPage"
+          align="fill"
+        ></b-pagination>
+        </b-col>
+    </b-row>
     </div>
-    <!--- Table Sort -->
+    <!--- Table -->
     <div class="px-4 py-2">
-      <b-table v-show="perPage < 100"
+      <b-table
         striped 
         hover
         :items="items"
-        :per-page="ByPage"
-        :current-page="currenByPage"
-        table-variant="dark"
-      ></b-table>
-    </div>
-    <!--- Table Full per Page -->
-    <div class="px-4 py-2">
-      <b-table v-show="perPage > 50"
-        striped 
-        hover
-        :items="items"
+        :filter="filter"
+        :fields="fields"
         :per-page="perPage"
         table-variant="dark"
+        :current-page="currentPageSort"
+        @filtered="onFiltered"
+        fixed="true"
+        label-sort-asc
+        label-sort-clear
+        label-sort-desc
       ></b-table>
-    </div>
-    <!--- Pagination Sort -->
-    <div v-show="perPage < 100" class="px-4 py-2">
-      <b-pagination
-        v-model="currenByPage"
-        :total-rows="rows"
-        :per-page="ByPage"
-        align="center"
-      ></b-pagination>
     </div>
     <!--- Pagination -->
     <div class="px-4 py-2">
       <b-pagination-nav
-        v-model="currenPage"
-        :number-of-pages="last"
+        v-model="currentPage"
+        :number-of-pages="lastPage"
         last-number
         first-text="First"
         prev-text="Prev"
@@ -81,21 +113,46 @@ export default {
     return {
       baseURL: "http://apitest.cargofive.com/api/ports",
       perPage: 100,
-      ByPage: 50,
-      currenPage: 1,
-      currenByPage: 1,
+      currentPage: 1,
+      currentPageSort: 1,
+      totalRows: 1,
+      pageOptions: [25, 50, 75, 100],
       items: [],
       links: {},
-      last: 1,
+      lastPage: 1,
       scrollTimer: 0,
-      scrollY: 0
+      scrollY: 0,
+      search: "",
+      filter: null,
+      fields: [
+        {
+          key: "id",
+          sortable: false,
+        },
+        {
+          key: "name",
+          sortable: true,
+        },
+        {
+          key: "country",
+          sortable: true,
+        },
+        {
+          key: "continent",
+          sortable: true,
+        },
+        {
+          key: "coordinates",
+          sortable: false,
+        },
+      ],
     }
   },
   created () {
-    this.getPage(this.currenPage)
+    this.getPage(this.currentPage)
   },
   mounted() {
-      window.addEventListener('scroll', this.handleScroll);
+    window.addEventListener('scroll', this.handleScroll);
   },
   methods: {
     getPage(page) {
@@ -103,7 +160,8 @@ export default {
       .then(response => {
         this.items = response.data.data
         this.links = response.data.links
-        this.last = response.data.links.last.replace(`${this.baseURL}?page=`, '')
+        this.lastPage = response.data.meta.last_page
+        this.perPage = response.data.meta.per_page
       })
       .catch(error => {
         console.log(error)
@@ -123,46 +181,34 @@ export default {
     scrollToTop() {
       window.scrollTo({top: 0, behavior: 'smooth'});
     },
-    CountrySorted() {
-        return this.items.sort((a, b) => {
-            return a.country.localeCompare(b.country);
-        });
-    },
-    ContinentSorted() {
-        return this.items.sort((a, b) => {
-            return a.continent.localeCompare(b.continent);
-        });
-    },
-    Display100ResultPerPage() {
-      return this.perPage = 100
-    },
-    Display50ResultPerPage() {
-      this.perPage = 50
-      this.ByPage = 50
-      return {
-        'perPage': this.perPage,
-        'ByPage': this.ByPage
-      }
-    },
-    Display25ResultPerPage() {
-      this.perPage = 25
-      this.ByPage = 25
-      return {
-        'perPage': this.perPage,
-        'ByPage': this.ByPage
-      }
-    },
+    onFiltered(filteredItems) {
+      this.totalRows = filteredItems.length
+      this.items.length = this.totalRows
+    }
   },
   computed: {
-    rows() {
-      return this.items.length
-    }
+    sortOptions() {
+      return this.fields
+        .filter((f) => f.sortable)
+        .map((f) => {
+          return { text: f.label, value: f.key };
+      });
+    },
+  },
+  updated() {
+    this.totalRows = this.items.length
   }
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style>
+select {
+  width: 100%;
+  padding: 0.5rem 0.5rem;
+  border-radius: 0.2rem;
+  border: 1px solid #ced4da;
+}
 .page-item.active .page-link {
   background-color: #212529;
   border-color: #212529;
