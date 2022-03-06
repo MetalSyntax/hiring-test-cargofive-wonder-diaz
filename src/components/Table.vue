@@ -112,8 +112,10 @@
     </b-row>
     </div>
     <!--- Table -->
-    <div class="px-4 py-2">
-      <b-table
+    <div class="px-4 py-2 text-center">
+      <b-spinner variant="secondary" v-if="loading"></b-spinner>
+      <b-table 
+        v-else
         striped 
         hover
         :items="items"
@@ -188,6 +190,7 @@ export default {
       sortDirection: 'asc',
       sortOptionsSelect: ["name","country","continent"],
       filter: null,
+      loading: true,
       fields: [
         {
           key: "id",
@@ -237,9 +240,11 @@ export default {
         this.links = response.data.links
         this.lastPage = response.data.meta.last_page
         this.perPage = response.data.meta.per_page
+        this.loading = false
       })
       .catch(error => {
         console.log(error)
+        this.loading = true
       })
     },
     // Load next page
