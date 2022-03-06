@@ -1,7 +1,7 @@
 <template>
-  <b-navbar class="px-4" type="light" variant="light">
+  <b-navbar class="px-4 fixed-top" type="light" variant="light">
     <b-navbar-brand href="#">
-      <img src="../assets/logo.png" alt="Logo" width="100">
+      <img src="../assets/logo.png" alt="Logo" width="150">
     </b-navbar-brand>
     <b-navbar-nav>
       <b-nav-item href="#"></b-nav-item>

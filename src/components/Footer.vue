@@ -19,5 +19,8 @@ export default {
 </script>
 
 <style>
-
+.bg-dark {
+    --bs-bg-opacity: 1;
+    background-color:#020e28 !important;
+}
 </style>
