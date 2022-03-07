@@ -1,9 +1,9 @@
 <template>
-    <footer class="bg-dark">
+    <footer class="bg-dark footer-copyright">
         <b-container >
             <b-row>
                 <b-col>
-                    <div class="footer-copyright text-center text-light">
+                    <div class="text-center text-light">
                         <p class="my-2">Copyright &copy; {{ new Date().getFullYear() }}. All rights reserved. <br>Created by <a class="text-light" href="https://metalsyntax.vercel.app/">MetalSyntax</a>.</p>
                     </div>
                 </b-col>

@@ -42,18 +42,20 @@
     </b-row>
     <b-row>
       <b-col lg="6" class="my-1">
-      <!--- Pagination Sort -->
-      <b-form-group
-          label="Internal pagination"
-          label-for="sort-by-pagination"
-          class="mb-3"
+        <b-form-group
+          label="Group Selector"
+          v-slot="{ ariaDescribedby }"
+          class="checkbox"
         >
-          <b-pagination
-            v-model="currentPageSort"
-            :total-rows="totalRows"
-            :per-page="perPage"
-            align="fill"
-          ></b-pagination>
+          <b-form-checkbox
+            :disabled="visibleFields.length == 1 && field.visible"
+            v-for="field in fields" 
+            :key="field.key" 
+            v-model="field.visible" 
+            :aria-describedby="ariaDescribedby"
+          >
+            {{ field.key }}
+          </b-form-checkbox>
         </b-form-group>
       </b-col>
       <b-col lg="6" class="my-1">
@@ -90,29 +92,9 @@
         </b-form-group>
       </b-col>
     </b-row>
-    <b-row>
-      <b-col lg="6" class="my-1">
-        <!--- Visible columns in the table-->
-        <b-form-group
-          label="Group Selector"
-          v-slot="{ ariaDescribedby }"
-          class="checkbox"
-        >
-          <b-form-checkbox
-            :disabled="visibleFields.length == 1 && field.visible"
-            v-for="field in fields" 
-            :key="field.key" 
-            v-model="field.visible" 
-            :aria-describedby="ariaDescribedby"
-          >
-            {{ field.key }}
-          </b-form-checkbox>
-        </b-form-group>
-      </b-col>
-    </b-row>
     </div>
     <!--- Table -->
-    <div class="px-4 py-2 text-center">
+    <div v-bind:class="[loading ? 'spinnerTable' : 'px-4 py-2 text-center']">
       <b-spinner variant="secondary" v-if="loading"></b-spinner>
       <b-table 
         v-else
@@ -125,7 +107,7 @@
         table-variant="dark"
         :current-page="currentPageSort"
         @filtered="onFiltered"
-        fixed="true"
+        fixed
         label-sort-clear
         label-sort-asc
         label-sort-desc
@@ -136,19 +118,16 @@
     </div>
     <!--- Pagination -->
     <div class="px-4 py-2">
-      <b-pagination-nav
-        v-model="currentPage"
-        :number-of-pages="lastPage"
-        last-number
+      <b-pagination
+        v-model="currentPageSort"
+        :total-rows="totalRows"
+        :per-page="perPage"
         first-text="First"
         prev-text="Prev"
         next-text="Next"
         last-text="Last"
         align="center"
-        @change="loadPage"
-        use-router
-      >
-      </b-pagination-nav>
+      ></b-pagination>
       <!-- Back to top -->
       <b-button 
         v-show="scrollY > 300" 
@@ -169,19 +148,18 @@
 
 <script>
 import axios from "axios";
+import _ from "lodash"
 export default {
   name: 'Table',
   data() {
     return {
       baseURL: "http://apitest.cargofive.com/api/ports",
       perPage: 100,
-      currentPage: 1,
       currentPageSort: 1,
       totalRows: 1,
-      pageOptions: [25, 50, 75, 100],
+      pageOptions: [25, 50, 75, 100, 150, 200],
       items: [],
       links: {},
-      lastPage: 1,
       scrollTimer: 0,
       scrollY: 0,
       search: "",
@@ -221,36 +199,34 @@ export default {
     }
   },
   created () {
-    this.getPage(this.currentPage)
+    this.ExecuteRequest(this.baseURL).then(data => {
+      this.items = data.data
+      this.loading = false
+    })
   },
   mounted() {
     window.addEventListener('scroll', this.handleScroll);
   },
   methods: {
-    // Get the current page
-    getPage(page) {
-      const axiosInstance = axios.create({
-        headers: {
-          "Access-Control-Allow-Origin": "*"
+    // Customizer to mergeWith
+    customizer(objValue, srcValue) {
+      if (_.isArray(objValue)) {
+        return objValue.concat(srcValue);
+      }
+    },
+    // Recursive function to load all data from URL
+    async ExecuteRequest(url, data) {
+      data = data || {};
+      await axios.get(url).then(response => {
+        _.mergeWith(data, response.data, this.customizer);
+        if (response.data.links.next != null) {
+          return this.ExecuteRequest(response.data.links.next, data);
         }
-      });
-      axiosInstance.get(`${this.baseURL}?page=${page}`)
-      .then(response => {
-        this.items = response.data.data
-        this.links = response.data.links
-        this.lastPage = response.data.meta.last_page
-        this.perPage = response.data.meta.per_page
-        this.loading = false
-      })
-      .catch(error => {
+      }).catch(error => {
         console.log(error)
         this.loading = true
-      })
-    },
-    // Load next page
-    loadPage(pageNum) {
-      this.getPage(pageNum)
-      this.filter = ''
+      });
+      return data;
     },
     // Back to top 
     handleScroll() {
@@ -330,5 +306,11 @@ select {
 .custom-checkbox {
   margin-right: 10px;
   text-align: center;
+}
+.spinnerTable {
+  height: calc(100vh - 380.75px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>
